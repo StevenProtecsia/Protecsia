@@ -227,7 +227,7 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
   <div class="nav-tab" data-tab="validation" onclick="switchTab('validation')">&#9989; Validation <span class="badge-warn" id="badge-pending" style="display:none">0</span></div>
   <div class="nav-tab" data-tab="agenda" onclick="switchTab('agenda')">&#128197; Agenda <span class="badge" id="agenda-badge" style="display:none">0</span></div>
   <div class="nav-tab" data-tab="suivi" onclick="switchTab('suivi')">&#128200; Suivi</div>
-  <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')">&#9881; Parametres</div>
+  <div class="nav-tab" data-tab="settings" onclick="openSettings()">&#9881; Parametres</div>
 </nav>
 
 <!-- PROSPECTION -->
@@ -373,32 +373,6 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
           </select>
           <input id="per-autre" type="text" placeholder="Preciser..." disabled>
         </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">Situation et revenus</div>
-    <div class="grid-2" style="margin-bottom:12px">
-      <div class="field">
-        <label>Situation perso.</label>
-        <select id="situation">
-          <option value="">-- Choisir --</option>
-          <option>Celibataire</option>
-          <option>En couple (sans enfant)</option>
-          <option>En couple (avec enfant(s))</option>
-          <option>Parent isole</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Revenu annuel estime</label>
-        <select id="revenu">
-          <option value="">-- Tranche --</option>
-          <option>Moins de 30 000 EUR</option>
-          <option>30 000 - 50 000 EUR</option>
-          <option>50 000 - 80 000 EUR</option>
-          <option>80 000 - 120 000 EUR</option>
-          <option>Plus de 120 000 EUR</option>
-        </select>
       </div>
     </div>
   </div>
@@ -815,8 +789,6 @@ function creerFiche(tel, nomComplet) {
   document.getElementById('rdv-heure').value = '10:00';
   document.getElementById('commercial').value = '';
   document.getElementById('notes').value = '';
-  document.getElementById('situation').value = '';
-  document.getElementById('revenu').value = '';
   document.getElementById('save-confirm').style.display = 'none';
 
   pStatuses[tel] = 'called';
@@ -1007,6 +979,13 @@ function getCombo(selId, autreId) {
   return sel.value;
 }
 
+var COMMERCIAL_EMAILS = {
+  'Steven Houry':  's.houry@protecsia.fr',
+  'Julien Fhima':  'julien@protecsia.fr',
+  'Romeo Dijoux':  'romeo@protecsia.fr',
+  'Stephen Kissous': 'stephen@protecsia.fr'
+};
+
 function buildGCalLink(f) {
   if (!f.rdvDate) return '#';
   var p = f.rdvDate.split('-'), y=p[0], m=p[1], d=p[2];
@@ -1025,13 +1004,31 @@ function buildGCalLink(f) {
     '\nNotes : ' + (f.notes||'--')
   );
   var location = encodeURIComponent(f.rdvLieu || '');
+  // Ajouter l'email du commercial pour pre-remplir son agenda
+  var commEmail = COMMERCIAL_EMAILS[f.commercial] || '';
   var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title + '&dates=' + s + '/' + e + '&details=' + details;
   if (f.rdvLieu) url += '&location=' + location;
+  if (commEmail) url += '&add=' + encodeURIComponent(commEmail);
   return url;
 }
 
+// Acces parametres restreint
+var ADMINS = ['Steven Houry', 'Julien Fhima', 'Stephen Kissous'];
+var settingsUnlocked = false;
+
+function openSettings() {
+  if (settingsUnlocked) { switchTab('settings'); return; }
+  var pin = prompt('Parametres reserves aux managers.\nEntrez le code acces :');
+  if (pin === '2505') {
+    settingsUnlocked = true;
+    switchTab('settings');
+  } else if (pin !== null) {
+    showToast('Code incorrect');
+  }
+}
+
 function buildMailtoLink(f) {
-  var to = 'julien@protecsia.fr,steven@protecsia.fr';
+  var to = 'julien@protecsia.fr,s.houry@protecsia.fr';
   var subject = encodeURIComponent('[PROTECSIA] Nouvelle fiche - ' + f.prenom + ' ' + f.nom);
   var gcalUrl = f.rdvDate ? buildGCalLink(f) : null;
   var gcalLine = gcalUrl ? '\n\nLIEN GOOGLE AGENDA :\n' + gcalUrl : '\nAucune date RDV.';
@@ -1041,11 +1038,10 @@ function buildMailtoLink(f) {
     'Profession : ' + (f.profession||'--') + '\n' +
     'Tel : ' + (f.tel||'--') + '\n' +
     'Email : ' + (f.email||'--') + '\n' +
-    'Situation : ' + (f.situation||'--') + '\n' +
-    'Revenu estime : ' + (f.revenu||'--') + '\n' +
     'Debut activite : ' + (f.debut||'--') + '\n\n' +
-    'Prevoyance : ' + (f.prevoyance||'NC') + ' | Mutuelle : ' + (f.mutuelle||'NC') + ' | PER : ' + (f.per||'NC') + '\n' +
+    'Prevoyance : ' + (f.prevoyance||'NC') + '\nMutuelle : ' + (f.mutuelle||'NC') + '\nPER : ' + (f.per||'NC') + '\n' +
     'RDV : ' + (f.rdvDate ? formatDate(f.rdvDate) + ' a ' + f.rdvHeure : 'Non defini') + ' - ' + (f.commercial||'Non assigne') + '\n' +
+    'Lieu : ' + (f.rdvLieu||'--') + '\n' +
     'Notes : ' + (f.notes||'--') +
     gcalLine + '\n\nProtecsia'
   );
@@ -1064,8 +1060,6 @@ function saveFiche() {
     profession: document.getElementById('profession').value,
     dob: document.getElementById('dob').value,
     debut: document.getElementById('debut').value,
-    situation: document.getElementById('situation').value,
-    revenu: document.getElementById('revenu').value,
     prevoyance: getCombo('prevoyance-sel','prevoyance-autre'),
     mutuelle: getCombo('mutuelle-sel','mutuelle-autre'),
     per: getCombo('per-sel','per-autre'),
@@ -1092,7 +1086,7 @@ function persist() {
 
 function resetForm() {
   ['nom','prenom','tel','email','dob','debut','rdv-date','rdv-lieu','notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
-  ['profession','prevoyance-sel','mutuelle-sel','per-sel','commercial','situation','revenu'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['profession','prevoyance-sel','mutuelle-sel','per-sel','commercial'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   ['prevoyance-autre','mutuelle-autre','per-autre'].forEach(function(id){var el=document.getElementById(id);if(el){el.value='';el.disabled=true;}});
   document.getElementById('rdv-heure').value='10:00';
 }
