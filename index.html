@@ -1262,10 +1262,17 @@ function getCombo(selId, autreId) {
 }
 
 var COMMERCIAL_EMAILS = {
-  'Steven Houry':  's.houry@protecsia.fr',
-  'Julien Fhima':  'julien@protecsia.fr',
-  'Romeo Dijoux':  'romeo@protecsia.fr',
-  'Stephen Kissous': 'stephen@protecsia.fr'
+  'Steven Houry':   's.houry@protecsia.fr',
+  'Julien Fhima':   'julien@protecsia.fr',
+  'Romeo Dijoux':   'r.dijoux@protecsia.fr',
+  'Stephen Kissous':'stephen@protecsia.fr'
+};
+
+var PROSPECTEUR_EMAILS = {
+  'Youcef Fillali': 'y.fillali@protecsia.fr',
+  'Meissane Temam': 'm.temam@protecsia.fr',
+  'Sacha Levy':     '',
+  'Nathan Chollet': 'n.chollet@protecsia.fr'
 };
 
 function buildGCalLink(f) {
@@ -1282,15 +1289,22 @@ function buildGCalLink(f) {
     '\nPrevoyance : ' + (f.prevoyance||'NC') +
     '\nMutuelle : ' + (f.mutuelle||'NC') +
     '\nPER : ' + (f.per||'NC') +
+    '\nProspecteur : ' + (f.prospecteur||'--') +
     '\nCommercial : ' + (f.commercial||'--') +
     '\nNotes : ' + (f.notes||'--')
   );
   var location = encodeURIComponent(f.rdvLieu || '');
-  // Ajouter l'email du commercial pour pre-remplir son agenda
+
+  // Guests : commercial + prospecteur (sans adresse perso Steven)
+  var guests = [];
   var commEmail = COMMERCIAL_EMAILS[f.commercial] || '';
+  if (commEmail) guests.push(commEmail);
+  var prospEmail = PROSPECTEUR_EMAILS[f.prospecteur] || '';
+  if (prospEmail) guests.push(prospEmail);
+
   var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title + '&dates=' + s + '/' + e + '&details=' + details;
   if (f.rdvLieu) url += '&location=' + location;
-  if (commEmail) url += '&add=' + encodeURIComponent(commEmail);
+  if (guests.length) url += '&add=' + guests.map(encodeURIComponent).join(',');
   return url;
 }
 
