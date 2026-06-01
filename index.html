@@ -292,6 +292,7 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
   <div id="prosp-section" style="display:none">
     <div class="prosp-toolbar">
       <label class="btn btn-sm" for="file-input" style="cursor:pointer">&#8593; Changer fichier</label>
+      <button class="btn btn-sm" onclick="changerProspecteur()" id="btn-session-prosp" style="background:var(--accent-light);color:var(--accent);border-color:#b3d4c0;font-weight:500">&#128100; Choisir mon nom</button>
       <input type="text" id="prosp-search" placeholder="Rechercher nom, ville, numero..." oninput="renderProsp()">
       <span class="prosp-stats" id="prosp-stats"></span>
     </div>
@@ -592,6 +593,7 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
       <thead>
         <tr>
           <th>Prospecteur</th>
+          <th>Appels</th>
           <th>Fiches</th>
           <th>RDV</th>
           <th>R2</th>
@@ -736,7 +738,9 @@ var prospects = [];
 var pStatuses = JSON.parse(localStorage.getItem('protecsia_pstatus') || '{}');
 var pRappels = JSON.parse(localStorage.getItem('protecsia_rappels') || '{}');
 var pNotes   = JSON.parse(localStorage.getItem('protecsia_notes')   || '{}');
+var pAppels  = JSON.parse(localStorage.getItem('protecsia_appels')  || '{}'); // { prospecteur: count }
 var pFilter = 'all';
+var sessionProspecteur = localStorage.getItem('protecsia_session_prosp') || '';
 
 var PROFESSIONS = [
   'Infirmier(e) liberal(e) (IDEL)',
@@ -762,6 +766,7 @@ function savePStatuses() {
   localStorage.setItem('protecsia_pstatus', JSON.stringify(pStatuses));
   localStorage.setItem('protecsia_rappels', JSON.stringify(pRappels));
   localStorage.setItem('protecsia_notes',   JSON.stringify(pNotes));
+  localStorage.setItem('protecsia_appels',  JSON.stringify(pAppels));
 }
 function getPStatus(tel) { return pStatuses[tel.replace(/\s/g,'')] || 'new'; }
 
@@ -942,9 +947,53 @@ function creerFiche(tel, nomComplet) {
   showToast('Fiche pre-remplie pour ' + nomComplet);
 }
 
+function changerProspecteur() {
+  var noms = PROSPECTEURS.map(function(p) { return p.nom; });
+  var choix = prompt('Qui es-tu ?\n' + noms.map(function(n,i){return (i+1)+'. '+n;}).join('\n') + '\n\nEntre le numero :');
+  if (!choix) return;
+  var idx = parseInt(choix) - 1;
+  if (idx >= 0 && idx < noms.length) {
+    sessionProspecteur = noms[idx];
+    localStorage.setItem('protecsia_session_prosp', sessionProspecteur);
+    updateSessionBtn();
+    showToast('Connecte comme : ' + sessionProspecteur);
+  }
+}
+
+function updateSessionBtn() {
+  var btn = document.getElementById('btn-session-prosp');
+  if (!btn) return;
+  if (sessionProspecteur) {
+    btn.innerHTML = '&#128100; ' + sessionProspecteur;
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--accent)';
+  } else {
+    btn.innerHTML = '&#128100; Choisir mon nom';
+    btn.style.background = 'var(--accent-light)';
+    btn.style.color = 'var(--accent)';
+    btn.style.borderColor = '#b3d4c0';
+  }
+}
+
 function addRappel(tel) {
+  if (!sessionProspecteur) {
+    var noms = PROSPECTEURS.map(function(p) { return p.nom; });
+    var choix = prompt('Qui es-tu ?\n' + noms.map(function(n,i){return (i+1)+'. '+n;}).join('\n') + '\n\nEntre le numero :');
+    if (!choix) return;
+    var idx = parseInt(choix) - 1;
+    if (idx >= 0 && idx < noms.length) {
+      sessionProspecteur = noms[idx];
+      localStorage.setItem('protecsia_session_prosp', sessionProspecteur);
+      showToast('Connecte comme : ' + sessionProspecteur);
+    } else return;
+  }
   pRappels[tel] = (pRappels[tel] || 0) + 1;
   if (!pStatuses[tel] || pStatuses[tel] === 'new') pStatuses[tel] = 'pending';
+  // Tracker l'appel par prospecteur et par jour
+  var today = new Date().toISOString().slice(0,10);
+  var key = sessionProspecteur + '|' + today;
+  pAppels[key] = (pAppels[key] || 0) + 1;
   savePStatuses();
   renderProsp();
 }
@@ -1028,8 +1077,20 @@ function renderEquipe() {
     var fp = fiches.filter(function(f) {
       return ficheInRange(f) && (f.prospecteur === p.nom || f.createdBy === p.nom);
     });
+    // Compter les appels depuis pAppels pour ce prospecteur
+    var range = getDateRange();
+    var totalAppels = 0;
+    Object.keys(pAppels).forEach(function(key) {
+      var parts = key.split('|');
+      if (parts[0] !== p.nom) return;
+      var day = parts[1] || '';
+      if (!range || (day >= range.from && day <= range.to)) {
+        totalAppels += pAppels[key];
+      }
+    });
     return {
       nom: p.nom, initiales: p.initiales, couleur: p.couleur,
+      appels: totalAppels,
       fiches: fp.length,
       rdv:    fp.filter(function(f) { return f.rdvDate; }).length,
       r2:     fp.filter(function(f) { return ficheStatuts[f.id] === 'R2'; }).length,
@@ -1075,7 +1136,7 @@ function renderEquipe() {
     cardsHtml += '<span class="equipe-card-rank">' + (medals[rank] || '') + '</span>';
     cardsHtml += '<div class="equipe-avatar" style="background:' + p.couleur + '">' + p.initiales + '</div>';
     cardsHtml += '<div class="equipe-name">' + p.nom + '</div>';
-    cardsHtml += '<div class="equipe-role">Prospecteur &nbsp;·&nbsp; RDV ' + tauxRdv + ' &nbsp;·&nbsp; Signe ' + tauxSigne + '</div>';
+    cardsHtml += '<div class="equipe-role">Prospecteur &nbsp;·&nbsp; ' + s.appels + ' appel' + (s.appels>1?'s':'') + ' &nbsp;·&nbsp; RDV ' + tauxRdv + ' &nbsp;·&nbsp; Signe ' + tauxSigne + '</div>';
     cardsHtml += '<div class="equipe-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:6px">';
     cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val">' + s.fiches + '</div><div class="equipe-stat-lbl">Fiches</div></div>';
     cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val" style="color:var(--green)">' + s.rdv + '</div><div class="equipe-stat-lbl">RDV</div></div>';
@@ -1103,6 +1164,7 @@ function renderEquipe() {
     var barW = Math.round(p.fiches/maxFiches*100);
     tableHtml += '<tr>';
     tableHtml += '<td><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:' + p.couleur + ';display:inline-block;flex-shrink:0"></span>' + p.nom + '</span></td>';
+    tableHtml += '<td><span class="score-num" style="color:var(--info)">' + p.appels + '</span></td>';
     tableHtml += '<td><span class="score-num">' + p.fiches + '</span></td>';
     tableHtml += '<td><span class="score-num" style="color:var(--green)">' + p.rdv + ' <span style="font-size:10px;color:var(--text3)">(' + tauxRdv + ')</span></span></td>';
     tableHtml += '<td><span class="score-num" style="color:var(--green)">' + p.r2 + '</span></td>';
@@ -1295,12 +1357,12 @@ function buildGCalLink(f) {
   );
   var location = encodeURIComponent(f.rdvLieu || '');
 
-  // Guests : commercial + prospecteur (sans adresse perso Steven)
-  var guests = [];
+  // Guests : commercial + prospecteur + managers fixes
+  var guests = ['julien@protecsia.fr', 'stephen@protecsia.fr'];
   var commEmail = COMMERCIAL_EMAILS[f.commercial] || '';
-  if (commEmail) guests.push(commEmail);
+  if (commEmail && guests.indexOf(commEmail) === -1) guests.push(commEmail);
   var prospEmail = PROSPECTEUR_EMAILS[f.prospecteur] || '';
-  if (prospEmail) guests.push(prospEmail);
+  if (prospEmail && guests.indexOf(prospEmail) === -1) guests.push(prospEmail);
 
   var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title + '&dates=' + s + '/' + e + '&details=' + details;
   if (f.rdvLieu) url += '&location=' + location;
@@ -1779,6 +1841,7 @@ updateBadges();
 renderAgenda();
 renderPending();
 loadFromGS();
+updateSessionBtn();
 
 // Auto-refresh toutes les 60 secondes
 setInterval(function() {
