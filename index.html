@@ -208,6 +208,46 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
 .score-num{font-family:'DM Mono',monospace;font-weight:600;color:var(--accent)}
 .score-bar-cell{width:140px}
 .score-mini-bar{height:6px;border-radius:99px;background:var(--accent);min-width:4px}
+
+/* Equipe */
+.equipe-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;position:relative;overflow:hidden}
+.equipe-card-rank{position:absolute;top:12px;right:14px;font-size:22px}
+.equipe-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;font-family:'DM Mono',monospace;margin-bottom:10px;color:#fff}
+.equipe-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.equipe-role{font-size:11px;color:var(--text3);margin-bottom:12px}
+.equipe-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.equipe-stat{background:var(--surface2);border-radius:var(--radius-sm);padding:6px 8px;text-align:center}
+.equipe-stat-val{font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)}
+.equipe-stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+.podium-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.podium-row:last-child{border-bottom:none}
+.podium-medal{font-size:20px;width:30px;text-align:center;flex-shrink:0}
+.podium-name{font-size:14px;font-weight:600;flex:1}
+.podium-score{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);font-weight:600}
+.podium-bar-wrap{width:100px;background:var(--surface2);border-radius:99px;height:6px;overflow:hidden}
+.podium-bar{height:100%;border-radius:99px;background:var(--accent)}
+@media(max-width:600px){#equipe-cards{grid-template-columns:1fr}}
+
+/* Commerciaux */
+.comm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.comm-name{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.comm-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.comm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.comm-stat{background:var(--surface2);border-radius:var(--radius-sm);padding:6px 8px;text-align:center}
+.comm-stat-val{font-size:20px;font-weight:700;font-family:'DM Mono',monospace}
+.comm-stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+.statut-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border:1px solid var(--border);border-radius:99px;cursor:pointer;background:var(--surface2);color:var(--text2);transition:all .15s}
+.statut-btn:hover{background:var(--surface);border-color:var(--border2)}
+.statut-btn.active-r2{background:#E1F5EE;color:#0F6E56;border-color:#0F6E56}
+.statut-btn.active-pi{background:#fdf0ef;color:var(--danger);border-color:var(--danger)}
+.statut-btn.active-nrp{background:var(--surface2);color:var(--text3);border-color:var(--border2)}
+.statut-btn.active-signe{background:#EEF2FF;color:#4338CA;border-color:#4338CA}
+.comm-fiche-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.comm-fiche-info{flex:1;min-width:140px}
+.comm-fiche-nom{font-size:14px;font-weight:600}
+.comm-fiche-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.comm-fiche-statuts{display:flex;gap:6px;flex-shrink:0}
+@media(max-width:600px){.comm-stats{grid-template-columns:1fr 1fr}#comm-cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -227,6 +267,8 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
   <div class="nav-tab" data-tab="validation" onclick="switchTab('validation')">&#9989; Validation <span class="badge-warn" id="badge-pending" style="display:none">0</span></div>
   <div class="nav-tab" data-tab="agenda" onclick="switchTab('agenda')">&#128197; Agenda <span class="badge" id="agenda-badge" style="display:none">0</span></div>
   <div class="nav-tab" data-tab="suivi" onclick="switchTab('suivi')">&#128200; Suivi</div>
+  <div class="nav-tab" data-tab="equipe" onclick="switchTab('equipe')">&#127942; Equipe</div>
+  <div class="nav-tab" data-tab="commerciaux" onclick="switchTab('commerciaux')">&#128188; Commerciaux</div>
   <div class="nav-tab" data-tab="settings" onclick="openSettings()">&#9881; Parametres</div>
 </nav>
 
@@ -389,7 +431,19 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
         </select>
       </div>
     </div>
-    <div class="field" style="margin-bottom:12px"><label>Lieu du RDV</label><input id="rdv-lieu" type="text" placeholder="Ex: Cabinet du prospect, 12 rue de la Paix Paris, Visio..."></div>
+    <div class="grid-2" style="margin-bottom:12px">
+      <div class="field">
+        <label>Prospecteur</label>
+        <select id="prospecteur">
+          <option value="">-- Qui a prospecte ? --</option>
+          <option>Youcef Fillali</option>
+          <option>Meissane Temam</option>
+          <option>Sacha Levy</option>
+          <option>Nathan Chollet</option>
+        </select>
+      </div>
+      <div class="field"><label>Lieu du RDV</label><input id="rdv-lieu" type="text" placeholder="Ex: Cabinet, adresse, Visio..."></div>
+    </div>
     <div class="field"><label>Notes de l'appel</label>
       <textarea id="notes" placeholder="Contexte, objections, points a aborder lors du RDV expert..."></textarea>
     </div>
@@ -504,6 +558,96 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
     <div class="card-title">Scores prospecteurs par jour</div>
     <div id="scores-list"></div>
     <div id="scores-empty" style="display:none;text-align:center;padding:2rem;color:var(--text3);font-size:13px">Aucune activite enregistree.</div>
+  </div>
+
+</div>
+</div>
+
+<!-- EQUIPE -->
+<div class="view" id="view-equipe">
+<div class="container">
+
+  <!-- Periode filtre -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap">
+    <span style="font-size:13px;color:var(--text2);font-weight:500">Periode :</span>
+    <button class="ftab active" data-ep="all" onclick="setEquipePeriode('all',this)">Tout</button>
+    <button class="ftab" data-ep="today" onclick="setEquipePeriode('today',this)">Aujourd'hui</button>
+    <button class="ftab" data-ep="week" onclick="setEquipePeriode('week',this)">Cette semaine</button>
+    <button class="ftab" data-ep="month" onclick="setEquipePeriode('month',this)">Ce mois</button>
+  </div>
+
+  <!-- Classement podium -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-title">&#127942; Classement prospecteurs</div>
+    <div id="equipe-podium"></div>
+  </div>
+
+  <!-- Cartes individuelles -->
+  <div id="equipe-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem"></div>
+
+  <!-- Tableau détaillé -->
+  <div class="card">
+    <div class="card-title">Detail par prospecteur</div>
+    <table class="score-table" style="width:100%">
+      <thead>
+        <tr>
+          <th>Prospecteur</th>
+          <th>Fiches</th>
+          <th>RDV</th>
+          <th>R2</th>
+          <th>Signes</th>
+          <th>PI</th>
+          <th>NRP</th>
+          <th style="width:80px"></th>
+        </tr>
+      </thead>
+      <tbody id="equipe-table"></tbody>
+    </table>
+    <div id="equipe-empty" style="display:none;text-align:center;padding:2rem;color:var(--text3);font-size:13px">Aucune activite sur cette periode.</div>
+  </div>
+
+</div>
+</div>
+
+<!-- COMMERCIAUX -->
+<div class="view" id="view-commerciaux">
+<div class="container">
+
+  <!-- Filtres periode -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap">
+    <span style="font-size:13px;color:var(--text2);font-weight:500">Periode :</span>
+    <button class="ftab active" data-cp="all" onclick="setCommPeriode('all',this)">Tout</button>
+    <button class="ftab" data-cp="today" onclick="setCommPeriode('today',this)">Aujourd'hui</button>
+    <button class="ftab" data-cp="week" onclick="setCommPeriode('week',this)">Cette semaine</button>
+    <button class="ftab" data-cp="month" onclick="setCommPeriode('month',this)">Ce mois</button>
+  </div>
+
+  <!-- KPIs globaux -->
+  <div class="stats-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:1rem">
+    <div class="stat-card"><div class="stat-label">RDV assignes</div><div class="stat-value" id="ck-rdv">0</div></div>
+    <div class="stat-card"><div class="stat-label">R2 obtenus</div><div class="stat-value" id="ck-r2" style="color:var(--green)">0</div></div>
+    <div class="stat-card"><div class="stat-label">Signes</div><div class="stat-value" id="ck-signe" style="color:#4338CA">0</div></div>
+    <div class="stat-card"><div class="stat-label">Pas interesses</div><div class="stat-value" id="ck-pi" style="color:var(--danger)">0</div></div>
+    <div class="stat-card"><div class="stat-label">NRP</div><div class="stat-value" id="ck-nrp" style="color:var(--text3)">0</div></div>
+  </div>
+
+  <!-- Cartes commerciaux -->
+  <div id="comm-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem"></div>
+
+  <!-- Liste fiches avec statut -->
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Fiches par commercial</span>
+      <select id="comm-filter-name" onchange="renderCommerciaux()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 24px 5px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%236b6860%27 d=%27M6 8L1 3h10z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;outline:none">
+        <option value="">Tous les commerciaux</option>
+        <option>Steven Houry</option>
+        <option>Julien Fhima</option>
+        <option>Romeo Dijoux</option>
+        <option>Stephen Kissous</option>
+      </select>
+    </div>
+    <div id="comm-fiches-list" style="margin-top:1rem"></div>
+    <div id="comm-empty" style="display:none;text-align:center;padding:2rem;color:var(--text3);font-size:13px">Aucune fiche sur cette periode.</div>
   </div>
 
 </div>
@@ -831,6 +975,144 @@ function switchTab(tab) {
   if (tab === 'validation') renderPending();
   if (tab === 'prospection') renderProsp();
   if (tab === 'suivi') renderSuivi();
+  if (tab === 'equipe') renderEquipe();
+  if (tab === 'commerciaux') renderCommerciaux();
+}
+
+// EQUIPE
+var PROSPECTEURS = [
+  { nom: 'Youcef Fillali', initiales: 'YF', couleur: '#1D9E75' },
+  { nom: 'Meissane Temam', initiales: 'MT', couleur: '#1a5c8a' },
+  { nom: 'Sacha Levy',     initiales: 'SL', couleur: '#b85c0a' },
+  { nom: 'Nathan Chollet', initiales: 'NC', couleur: '#7c3aed' }
+];
+
+var equipePeriode = 'all';
+
+function setEquipePeriode(p, el) {
+  equipePeriode = p;
+  document.querySelectorAll('[data-ep]').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  renderEquipe();
+}
+
+function getDateRange() {
+  var now = new Date();
+  if (equipePeriode === 'today') {
+    var d = now.toISOString().slice(0,10);
+    return { from: d, to: d };
+  }
+  if (equipePeriode === 'week') {
+    var day = now.getDay() || 7;
+    var mon = new Date(now); mon.setDate(now.getDate() - day + 1);
+    return { from: mon.toISOString().slice(0,10), to: now.toISOString().slice(0,10) };
+  }
+  if (equipePeriode === 'month') {
+    var from = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01';
+    return { from: from, to: now.toISOString().slice(0,10) };
+  }
+  return null;
+}
+
+function ficheInRange(f) {
+  var range = getDateRange();
+  if (!range) return true;
+  var d = f.createdAt ? f.createdAt.slice(0,10) : '';
+  return d >= range.from && d <= range.to;
+}
+
+function renderEquipe() {
+  var medals = ['&#127947;', '&#129352;', '&#129353;', '&#127941;'];
+
+  var stats = PROSPECTEURS.map(function(p) {
+    var fp = fiches.filter(function(f) {
+      return ficheInRange(f) && (f.prospecteur === p.nom || f.createdBy === p.nom);
+    });
+    return {
+      nom: p.nom, initiales: p.initiales, couleur: p.couleur,
+      fiches: fp.length,
+      rdv:    fp.filter(function(f) { return f.rdvDate; }).length,
+      r2:     fp.filter(function(f) { return ficheStatuts[f.id] === 'R2'; }).length,
+      signe:  fp.filter(function(f) { return ficheStatuts[f.id] === 'Signe'; }).length,
+      pi:     fp.filter(function(f) { return ficheStatuts[f.id] === 'PI'; }).length,
+      nrp:    fp.filter(function(f) { return ficheStatuts[f.id] === 'NRP'; }).length
+    };
+  });
+
+  var ranked = stats.slice().sort(function(a,b) {
+    return b.signe - a.signe || b.r2 - a.r2 || b.fiches - a.fiches;
+  });
+  var maxFiches = Math.max(1, ranked[0] ? ranked[0].fiches : 1);
+
+  // Podium
+  var podiumHtml = '';
+  ranked.forEach(function(p, i) {
+    var medal = medals[i] || '#' + (i+1);
+    var barW = Math.round(p.fiches / maxFiches * 100);
+    podiumHtml += '<div class="podium-row">';
+    podiumHtml += '<span class="podium-medal">' + medal + '</span>';
+    podiumHtml += '<span class="podium-name">' + p.nom + '</span>';
+    podiumHtml += '<div style="display:flex;gap:8px;flex-shrink:0;font-size:11px">';
+    if (p.r2)    podiumHtml += '<span style="color:var(--green);font-weight:600">' + p.r2 + ' R2</span>';
+    if (p.signe) podiumHtml += '<span style="color:#4338CA;font-weight:600">' + p.signe + ' &#9989;</span>';
+    if (p.pi)    podiumHtml += '<span style="color:var(--danger)">' + p.pi + ' PI</span>';
+    if (p.nrp)   podiumHtml += '<span style="color:var(--text3)">' + p.nrp + ' NRP</span>';
+    podiumHtml += '</div>';
+    podiumHtml += '<div class="podium-bar-wrap" style="width:80px"><div class="podium-bar" style="width:' + barW + '%;background:' + p.couleur + '"></div></div>';
+    podiumHtml += '<span class="podium-score">' + p.fiches + ' fiche' + (p.fiches>1?'s':'') + '</span>';
+    podiumHtml += '</div>';
+  });
+  document.getElementById('equipe-podium').innerHTML = podiumHtml || '<p style="color:var(--text3);text-align:center;padding:1rem">Aucune fiche sur cette periode</p>';
+
+  // Cartes
+  var cardsHtml = '';
+  PROSPECTEURS.forEach(function(p) {
+    var s = stats.find(function(x) { return x.nom === p.nom; });
+    var rank = ranked.findIndex(function(r) { return r.nom === p.nom; });
+    var tauxRdv   = s.fiches > 0 ? Math.round(s.rdv/s.fiches*100)   + '%' : '--';
+    var tauxSigne = s.fiches > 0 ? Math.round(s.signe/s.fiches*100) + '%' : '--';
+    cardsHtml += '<div class="equipe-card">';
+    cardsHtml += '<span class="equipe-card-rank">' + (medals[rank] || '') + '</span>';
+    cardsHtml += '<div class="equipe-avatar" style="background:' + p.couleur + '">' + p.initiales + '</div>';
+    cardsHtml += '<div class="equipe-name">' + p.nom + '</div>';
+    cardsHtml += '<div class="equipe-role">Prospecteur &nbsp;·&nbsp; RDV ' + tauxRdv + ' &nbsp;·&nbsp; Signe ' + tauxSigne + '</div>';
+    cardsHtml += '<div class="equipe-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:6px">';
+    cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val">' + s.fiches + '</div><div class="equipe-stat-lbl">Fiches</div></div>';
+    cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val" style="color:var(--green)">' + s.rdv + '</div><div class="equipe-stat-lbl">RDV</div></div>';
+    cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val" style="color:#4338CA">' + s.signe + '</div><div class="equipe-stat-lbl">Signes</div></div>';
+    cardsHtml += '</div>';
+    cardsHtml += '<div class="equipe-stats" style="grid-template-columns:repeat(3,1fr)">';
+    cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val" style="color:var(--green);font-size:14px">' + s.r2 + '</div><div class="equipe-stat-lbl">R2</div></div>';
+    cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val" style="color:var(--danger);font-size:14px">' + s.pi + '</div><div class="equipe-stat-lbl">PI</div></div>';
+    cardsHtml += '<div class="equipe-stat"><div class="equipe-stat-val" style="color:var(--text3);font-size:14px">' + s.nrp + '</div><div class="equipe-stat-lbl">NRP</div></div>';
+    cardsHtml += '</div></div>';
+  });
+  document.getElementById('equipe-cards').innerHTML = cardsHtml;
+
+  // Tableau
+  if (ranked.every(function(p) { return p.fiches === 0; })) {
+    document.getElementById('equipe-table').innerHTML = '';
+    document.getElementById('equipe-empty').style.display = 'block';
+    return;
+  }
+  document.getElementById('equipe-empty').style.display = 'none';
+  var tableHtml = '';
+  ranked.forEach(function(p) {
+    var tauxRdv   = p.fiches > 0 ? Math.round(p.rdv/p.fiches*100)   + '%' : '--';
+    var tauxSigne = p.fiches > 0 ? Math.round(p.signe/p.fiches*100) + '%' : '--';
+    var barW = Math.round(p.fiches/maxFiches*100);
+    tableHtml += '<tr>';
+    tableHtml += '<td><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:' + p.couleur + ';display:inline-block;flex-shrink:0"></span>' + p.nom + '</span></td>';
+    tableHtml += '<td><span class="score-num">' + p.fiches + '</span></td>';
+    tableHtml += '<td><span class="score-num" style="color:var(--green)">' + p.rdv + ' <span style="font-size:10px;color:var(--text3)">(' + tauxRdv + ')</span></span></td>';
+    tableHtml += '<td><span class="score-num" style="color:var(--green)">' + p.r2 + '</span></td>';
+    tableHtml += '<td><span class="score-num" style="color:#4338CA">' + p.signe + ' <span style="font-size:10px;color:var(--text3)">(' + tauxSigne + ')</span></span></td>';
+    tableHtml += '<td><span class="score-num" style="color:var(--danger)">' + p.pi + '</span></td>';
+    tableHtml += '<td><span class="score-num" style="color:var(--text3)">' + p.nrp + '</span></td>';
+    tableHtml += '<td><div style="background:var(--surface2);border-radius:99px;height:6px;overflow:hidden"><div style="width:' + barW + '%;height:100%;background:' + p.couleur + ';border-radius:99px"></div></div></td>';
+    tableHtml += '</tr>';
+  });
+  document.getElementById('equipe-table').innerHTML = tableHtml;
 }
 
 var suiviFilter = 'all';
@@ -1066,6 +1348,7 @@ function saveFiche() {
     rdvDate: document.getElementById('rdv-date').value,
     rdvHeure: document.getElementById('rdv-heure').value,
     rdvLieu: document.getElementById('rdv-lieu').value.trim(),
+    prospecteur: document.getElementById('prospecteur').value,
     commercial: document.getElementById('commercial').value,
     notes: document.getElementById('notes').value.trim()
   };
@@ -1086,7 +1369,7 @@ function persist() {
 
 function resetForm() {
   ['nom','prenom','tel','email','dob','debut','rdv-date','rdv-lieu','notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
-  ['profession','prevoyance-sel','mutuelle-sel','per-sel','commercial'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['profession','prevoyance-sel','mutuelle-sel','per-sel','commercial','prospecteur'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   ['prevoyance-autre','mutuelle-autre','per-autre'].forEach(function(id){var el=document.getElementById(id);if(el){el.value='';el.disabled=true;}});
   document.getElementById('rdv-heure').value='10:00';
 }
@@ -1256,6 +1539,123 @@ function appelerAircall() {
   document.body.appendChild(a);
   a.click();
   setTimeout(function() { document.body.removeChild(a); }, 500);
+}
+
+// COMMERCIAUX
+var COMMERCIAUX = [
+  { nom: 'Steven Houry',   initiales: 'SH', couleur: '#1a3a2a' },
+  { nom: 'Julien Fhima',   initiales: 'JF', couleur: '#1D9E75' },
+  { nom: 'Romeo Dijoux',   initiales: 'RD', couleur: '#1a5c8a' },
+  { nom: 'Stephen Kissous',initiales: 'SK', couleur: '#7c3aed' }
+];
+
+var commPeriode = 'all';
+var ficheStatuts = JSON.parse(localStorage.getItem('protecsia_fstatuts') || '{}');
+
+function saveFicheStatuts() { localStorage.setItem('protecsia_fstatuts', JSON.stringify(ficheStatuts)); }
+
+function setCommPeriode(p, el) {
+  commPeriode = p;
+  document.querySelectorAll('[data-cp]').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  renderCommerciaux();
+}
+
+function ficheInCommRange(f) {
+  var now = new Date();
+  var d = f.createdAt ? f.createdAt.slice(0,10) : '';
+  if (commPeriode === 'today') return d === now.toISOString().slice(0,10);
+  if (commPeriode === 'week') {
+    var day = now.getDay() || 7;
+    var mon = new Date(now); mon.setDate(now.getDate() - day + 1);
+    return d >= mon.toISOString().slice(0,10);
+  }
+  if (commPeriode === 'month') {
+    var from = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01';
+    return d >= from;
+  }
+  return true;
+}
+
+function setStatut(ficheId, statut) {
+  var cur = ficheStatuts[ficheId];
+  ficheStatuts[ficheId] = cur === statut ? null : statut;
+  saveFicheStatuts();
+  // Sync la fiche mise à jour vers GS
+  var f = fiches.find(function(x) { return x.id === ficheId; });
+  if (f) { f.statut = ficheStatuts[ficheId]; syncToGS(f); }
+  renderCommerciaux();
+}
+
+function renderCommerciaux() {
+  var filterComm = (document.getElementById('comm-filter-name') || {}).value || '';
+  var data = fiches.filter(function(f) {
+    return ficheInCommRange(f) && f.commercial && (!filterComm || f.commercial === filterComm);
+  });
+
+  // KPIs globaux
+  var totalRdv   = data.filter(function(f) { return f.rdvDate; }).length;
+  var totalR2    = data.filter(function(f) { return ficheStatuts[f.id] === 'R2'; }).length;
+  var totalSigne = data.filter(function(f) { return ficheStatuts[f.id] === 'Signe'; }).length;
+  var totalPi    = data.filter(function(f) { return ficheStatuts[f.id] === 'PI'; }).length;
+  var totalNrp   = data.filter(function(f) { return ficheStatuts[f.id] === 'NRP'; }).length;
+  var base = data.length || 1;
+  document.getElementById('ck-rdv').textContent   = totalRdv;
+  document.getElementById('ck-r2').textContent    = totalR2 + (totalRdv ? ' (' + Math.round(totalR2/base*100) + '%)' : '');
+  document.getElementById('ck-signe').textContent = totalSigne + (totalRdv ? ' (' + Math.round(totalSigne/base*100) + '%)' : '');
+  document.getElementById('ck-pi').textContent    = totalPi + (totalRdv ? ' (' + Math.round(totalPi/base*100) + '%)' : '');
+  document.getElementById('ck-nrp').textContent   = totalNrp + (totalRdv ? ' (' + Math.round(totalNrp/base*100) + '%)' : '');
+
+  // Cartes commerciaux
+  var cardsHtml = '';
+  COMMERCIAUX.forEach(function(c) {
+    var cFiches = data.filter(function(f) { return f.commercial === c.nom; });
+    var r2    = cFiches.filter(function(f) { return ficheStatuts[f.id] === 'R2'; }).length;
+    var signe = cFiches.filter(function(f) { return ficheStatuts[f.id] === 'Signe'; }).length;
+    var pi    = cFiches.filter(function(f) { return ficheStatuts[f.id] === 'PI'; }).length;
+    var nrp   = cFiches.filter(function(f) { return ficheStatuts[f.id] === 'NRP'; }).length;
+    var base  = cFiches.length || 1;
+    var tauxR2    = cFiches.length ? Math.round(r2/base*100) + '%' : '--';
+    var tauxSigne = cFiches.length ? Math.round(signe/base*100) + '%' : '--';
+    var tauxPi    = cFiches.length ? Math.round(pi/base*100) + '%' : '--';
+    var tauxNrp   = cFiches.length ? Math.round(nrp/base*100) + '%' : '--';
+    cardsHtml += '<div class="comm-card">';
+    cardsHtml += '<div class="comm-name"><span class="comm-dot" style="background:' + c.couleur + '"></span>' + c.nom + '<span style="margin-left:auto;font-size:11px;color:var(--text3);font-family:\'DM Mono\',monospace">' + cFiches.length + ' RDV</span></div>';
+    cardsHtml += '<div class="comm-stats" style="grid-template-columns:repeat(4,1fr)">';
+    cardsHtml += '<div class="comm-stat"><div class="comm-stat-val" style="color:var(--green)">' + r2 + '</div><div class="comm-stat-lbl">R2 · ' + tauxR2 + '</div></div>';
+    cardsHtml += '<div class="comm-stat"><div class="comm-stat-val" style="color:#4338CA">' + signe + '</div><div class="comm-stat-lbl">Signe · ' + tauxSigne + '</div></div>';
+    cardsHtml += '<div class="comm-stat"><div class="comm-stat-val" style="color:var(--danger)">' + pi + '</div><div class="comm-stat-lbl">PI · ' + tauxPi + '</div></div>';
+    cardsHtml += '<div class="comm-stat"><div class="comm-stat-val" style="color:var(--text3)">' + nrp + '</div><div class="comm-stat-lbl">NRP · ' + tauxNrp + '</div></div>';
+    cardsHtml += '</div></div>';
+  });
+  document.getElementById('comm-cards').innerHTML = cardsHtml;
+
+  // Liste fiches
+  var list = document.getElementById('comm-fiches-list');
+  var empty = document.getElementById('comm-empty');
+  if (!data.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  var sorted = data.slice().sort(function(a,b) { return b.id - a.id; });
+  var html = '';
+  sorted.forEach(function(f) {
+    var st = ficheStatuts[f.id] || null;
+    var commObj = COMMERCIAUX.find(function(c) { return c.nom === f.commercial; });
+    var dot = commObj ? '<span class="comm-dot" style="background:' + commObj.couleur + ';display:inline-block;margin-right:4px"></span>' : '';
+    html += '<div class="comm-fiche-row">';
+    html += '<div class="comm-fiche-info">';
+    html += '<div class="comm-fiche-nom">' + f.prenom + ' ' + f.nom.toUpperCase() + '</div>';
+    html += '<div class="comm-fiche-meta">' + dot + (f.commercial||'--') + (f.rdvDate ? ' &nbsp;·&nbsp; RDV ' + formatDate(f.rdvDate) : '') + (f.prospecteur ? ' &nbsp;·&nbsp; via ' + f.prospecteur : '') + '</div>';
+    html += '</div>';
+    html += '<div class="comm-fiche-statuts">';
+    html += '<button class="statut-btn' + (st==='R2'?' active-r2':'') + '" onclick="setStatut(' + f.id + ', \'R2\')">R2</button>';
+    html += '<button class="statut-btn' + (st==='Signe'?' active-signe':'') + '" onclick="setStatut(' + f.id + ', \'Signe\')">&#9989; Signe</button>';
+    html += '<button class="statut-btn' + (st==='PI'?' active-pi':'') + '" onclick="setStatut(' + f.id + ', \'PI\')">PI</button>';
+    html += '<button class="statut-btn' + (st==='NRP'?' active-nrp':'') + '" onclick="setStatut(' + f.id + ', \'NRP\')">NRP</button>';
+    html += '</div>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
 }
 
 var GS_URL = 'https://script.google.com/macros/s/AKfycbx2CUVlkc3AssY5ziBhQbcddK44hEzSfwQF1gOzGspGBPIjrsSYGf8GkYwNptGfvDHYRg/exec';
