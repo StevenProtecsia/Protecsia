@@ -264,7 +264,7 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
 <nav class="nav">
   <div class="nav-tab active" data-tab="prospection" onclick="switchTab('prospection')">&#128222; Prospection <span class="badge-green" id="badge-prosp" style="display:none">0</span></div>
   <div class="nav-tab" data-tab="form" onclick="switchTab('form')">&#128203; Nouvelle fiche</div>
-  <div class="nav-tab" data-tab="validation" onclick="switchTab('validation')">&#9989; Validation <span class="badge-warn" id="badge-pending" style="display:none">0</span></div>
+
   <div class="nav-tab" data-tab="agenda" onclick="switchTab('agenda')">&#128197; Agenda <span class="badge" id="agenda-badge" style="display:none">0</span></div>
   <div class="nav-tab" data-tab="suivi" onclick="switchTab('suivi')">&#128200; Suivi</div>
   <div class="nav-tab" data-tab="equipe" onclick="switchTab('equipe')">&#127942; Equipe</div>
@@ -311,19 +311,7 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
 <!-- NOUVELLE FICHE -->
 <div class="view" id="view-form">
 <div class="container">
-  <div class="validation-banner">
-    <h3>Flux de validation</h3>
-    <p>Apres enregistrement, la fiche est envoyee en attente de validation. Une fois validee, le RDV est ajoute a Google Agenda du commercial assigne.</p>
-    <div class="flow-steps">
-      <div class="flow-step done">Saisie prospect</div>
-      <div class="flow-arrow">&#8594;</div>
-      <div class="flow-step active">En attente validation</div>
-      <div class="flow-arrow">&#8594;</div>
-      <div class="flow-step">Valide</div>
-      <div class="flow-arrow">&#8594;</div>
-      <div class="flow-step">RDV Google Agenda</div>
     </div>
-  </div>
   <div class="card">
     <div class="card-title">Identite du prospect</div>
     <div class="grid-2" style="margin-bottom:12px">
@@ -451,14 +439,14 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
   </div>
   <div class="actions">
     <button class="btn btn-danger" onclick="resetForm()">Reinitialiser</button>
-    <button class="btn btn-primary" onclick="saveFiche()">Envoyer en validation</button>
+    <button class="btn btn-primary" onclick="saveFiche()">Creer la fiche &#128197;</button>
   </div>
   <div id="save-confirm" style="display:none;margin-top:1rem">
     <div class="card" style="border-color:#e6c08a;background:var(--orange-light)">
-      <p style="font-weight:600;color:var(--orange);margin-bottom:6px">Fiche envoyee en validation !</p>
+      <p style="font-weight:600;color:var(--orange);margin-bottom:6px">Fiche creee ! RDV ajoute a Google Agenda.</p>
       <p style="font-size:13px;color:#7a4a08" id="confirm-name"></p>
       <div style="margin-top:12px;display:flex;gap:8px">
-        <button class="btn btn-sm" onclick="switchTab('validation')">Voir les fiches en attente</button>
+        
         <button class="btn btn-sm" onclick="switchTab('prospection')">Retour prospection</button>
       </div>
     </div>
@@ -466,20 +454,8 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
 </div>
 </div>
 
-<!-- VALIDATION -->
-<div class="view" id="view-validation">
-<div class="container">
-  <div class="card" style="border-color:#e6c08a;background:var(--orange-light);margin-bottom:1.5rem">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div>
-        <p style="font-weight:600;color:var(--orange);font-size:14px">Espace validation — Julien Fhima · Steven Houry</p>
-        <p style="font-size:13px;color:#7a4a08;margin-top:2px">Validez les fiches pour envoyer les RDV dans Google Agenda.</p>
-      </div>
-    </div>
   </div>
-  <div id="pending-list"></div>
-  <div class="empty" id="pending-empty" style="display:none"><p>Aucune fiche en attente.</p></div>
-</div>
+    </div>
 </div>
 
 <!-- AGENDA -->
@@ -701,8 +677,6 @@ header{background:var(--accent);color:#fff;padding:0 2rem;height:56px;display:fl
       <div class="detail-item"><label>Email</label><p id="m-email">--</p></div>
       <div class="detail-item"><label>Date de naissance</label><p id="m-dob">--</p></div>
       <div class="detail-item"><label>Debut d'activite</label><p id="m-debut">--</p></div>
-      <div class="detail-item"><label>Situation</label><p id="m-situation">--</p></div>
-      <div class="detail-item"><label>Revenu estime</label><p id="m-revenu">--</p></div>
     </div>
     <hr class="detail-divider">
     <div class="detail-grid">
@@ -738,7 +712,8 @@ var prospects = [];
 var pStatuses = JSON.parse(localStorage.getItem('protecsia_pstatus') || '{}');
 var pRappels = JSON.parse(localStorage.getItem('protecsia_rappels') || '{}');
 var pNotes   = JSON.parse(localStorage.getItem('protecsia_notes')   || '{}');
-var pAppels  = JSON.parse(localStorage.getItem('protecsia_appels')  || '{}'); // { prospecteur: count }
+var pAppels  = JSON.parse(localStorage.getItem('protecsia_appels')  || '{}');
+var pHistorique = JSON.parse(localStorage.getItem('protecsia_historique') || '{}');
 var pFilter = 'all';
 var sessionProspecteur = localStorage.getItem('protecsia_session_prosp') || '';
 
@@ -907,11 +882,18 @@ function renderProsp() {
     if (rappels > 0) html += '<span style="font-size:10px;color:var(--text3);font-family:\'DM Mono\',monospace">' + rappels + ' rappel' + (rappels>1?'s':'') + '</span>';
     html += '</div>';
     html += '</div>';
-    if (note) html += '<div style="margin-top:8px;font-size:12px;color:var(--text2);background:var(--surface2);border-radius:var(--radius-sm);padding:6px 10px;line-height:1.5">' + note + '</div>';
+    var hist = pHistorique[tel] || [];
+    var lastCall = hist.length > 0 ? hist[hist.length-1] : null;
+    if (lastCall || note) {
+      var infoHtml = '';
+      if (lastCall) infoHtml += '<span style="color:var(--text3);font-family:DM Mono,monospace;font-size:11px">&#128222; ' + lastCall.heure + ' ' + lastCall.date.split('-').reverse().join('/') + ' · ' + lastCall.prosp + '</span>';
+      if (note) infoHtml += (lastCall ? '<br>' : '') + '<span>' + note + '</span>';
+      html += '<div style="margin-top:8px;font-size:12px;color:var(--text2);background:var(--surface2);border-radius:var(--radius-sm);padding:6px 10px;line-height:1.8">' + infoHtml + '</div>';
+    }
     html += '<div class="pcard-bottom">';
     html += buildProfSelect(tel);
-    html += '<button class="btn-fiche" id="btn-' + tel + '" disabled onclick="creerFiche(\'' + tel + '\', \'' + p.nom.replace(/'/g,"\\'") + '\')">+ Fiche</button>';
-    html += '<button class="btn-cycle" onclick="addRappel(\'' + tel + '\')" title="Compter un rappel" style="font-size:11px">+1 rappel</button>';
+    html += '<a class="btn-fiche" href="tel:' + tel + '" onclick="logAppel(\'' + tel + '\')" style="text-decoration:none">&#128222; Appeler</a>';
+    html += '<button class="btn-fiche" id="btn-' + tel + '" disabled onclick="creerFiche(\'' + tel + '\', \'' + p.nom.replace(/'/g,"\\'") + '\')" style="background:var(--accent)">+ Fiche</button>';
     html += '<button class="btn-cycle" onclick="editNote(\'' + tel + '\')" title="Ajouter une note" style="font-size:16px">&#128221;</button>';
     html += '</div></div>';
   });
@@ -976,6 +958,33 @@ function updateSessionBtn() {
   }
 }
 
+function logAppel(tel) {
+  // Si pas de session, demander le nom
+  if (!sessionProspecteur) {
+    var noms = PROSPECTEURS.map(function(p) { return p.nom; });
+    var choix = prompt('Qui es-tu ?\n' + noms.map(function(n,i){return (i+1)+'. '+n;}).join('\n') + '\n\nEntre le numero :');
+    if (!choix) return;
+    var idx = parseInt(choix) - 1;
+    if (idx >= 0 && idx < noms.length) {
+      sessionProspecteur = noms[idx];
+      localStorage.setItem('protecsia_session_prosp', sessionProspecteur);
+      updateSessionBtn();
+    } else return;
+  }
+  var now = new Date();
+  var today = now.toISOString().slice(0,10);
+  var timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  var key = sessionProspecteur + '|' + today;
+  pAppels[key] = (pAppels[key] || 0) + 1;
+  if (!pHistorique[tel]) pHistorique[tel] = [];
+  pHistorique[tel].push({ prosp: sessionProspecteur, date: today, heure: timeStr });
+  localStorage.setItem('protecsia_historique', JSON.stringify(pHistorique));
+  pRappels[tel] = (pRappels[tel] || 0) + 1;
+  if (!pStatuses[tel] || pStatuses[tel] === 'new') pStatuses[tel] = 'pending';
+  savePStatuses();
+  renderProsp();
+}
+
 function addRappel(tel) {
   if (!sessionProspecteur) {
     var noms = PROSPECTEURS.map(function(p) { return p.nom; });
@@ -990,10 +999,17 @@ function addRappel(tel) {
   }
   pRappels[tel] = (pRappels[tel] || 0) + 1;
   if (!pStatuses[tel] || pStatuses[tel] === 'new') pStatuses[tel] = 'pending';
-  // Tracker l'appel par prospecteur et par jour
-  var today = new Date().toISOString().slice(0,10);
+  // Tracker l'appel avec date et heure
+  var now = new Date();
+  var today = now.toISOString().slice(0,10);
+  var timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   var key = sessionProspecteur + '|' + today;
   pAppels[key] = (pAppels[key] || 0) + 1;
+  // Historique détaillé des appels
+  if (!pHistorique) pHistorique = {};
+  if (!pHistorique[tel]) pHistorique[tel] = [];
+  pHistorique[tel].push({ prosp: sessionProspecteur, date: today, heure: timeStr });
+  localStorage.setItem('protecsia_historique', JSON.stringify(pHistorique));
   savePStatuses();
   renderProsp();
 }
@@ -1021,7 +1037,7 @@ function switchTab(tab) {
   document.getElementById('view-' + tab).classList.add('active');
   document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
   if (tab === 'agenda') renderAgenda();
-  if (tab === 'validation') renderPending();
+
   if (tab === 'prospection') renderProsp();
   if (tab === 'suivi') renderSuivi();
   if (tab === 'equipe') renderEquipe();
@@ -1411,8 +1427,8 @@ function saveFiche() {
   var prenom = document.getElementById('prenom').value.trim();
   if (!nom || !prenom) { showToast('Nom et prenom requis'); return; }
   var fiche = {
-    id: Date.now(), createdAt: new Date().toISOString(), status: 'pending',
-    validatedBy: null, validatedAt: null, nom: nom, prenom: prenom,
+    id: Date.now(), createdAt: new Date().toISOString(), status: 'validated',
+    validatedBy: 'auto', validatedAt: new Date().toISOString(), nom: nom, prenom: prenom,
     tel: document.getElementById('tel').value.trim(),
     email: document.getElementById('email').value.trim(),
     profession: document.getElementById('profession').value,
@@ -1429,12 +1445,15 @@ function saveFiche() {
     notes: document.getElementById('notes').value.trim()
   };
   fiches.push(fiche); persist(); syncToGS(fiche); updateBadges();
-  window.open(buildMailtoLink(fiche), '_blank');
+  // Ouvrir Google Agenda directement
+  var gcalUrl = buildGCalLink(fiche);
+  if (gcalUrl && gcalUrl !== '#') window.open(gcalUrl, '_blank');
+
   var c = document.getElementById('save-confirm');
   c.style.display = 'block';
   document.getElementById('confirm-name').textContent = fiche.prenom + ' ' + fiche.nom.toUpperCase() + ' - ' + (fiche.profession||'');
   c.scrollIntoView({behavior:'smooth',block:'nearest'});
-  showToast('Fiche enregistree');
+  showToast('Fiche creee ! Google Agenda ouvert.');
   resetForm();
 }
 
@@ -1450,39 +1469,13 @@ function resetForm() {
   document.getElementById('rdv-heure').value='10:00';
 }
 
-function renderPending() {
-  var pending = fiches.filter(function(f){return f.status==='pending';});
-  var list = document.getElementById('pending-list');
-  var empty = document.getElementById('pending-empty');
-  if (!pending.length) { list.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display = 'none';
-  var html = '';
-  pending.forEach(function(f) {
-    var gcalUrl = f.rdvDate ? buildGCalLink(f) : null;
-    html += '<div class="pending-card" id="pc-' + f.id + '">';
-    html += '<div class="pending-header"><div><div class="pending-name">' + f.prenom + ' ' + f.nom.toUpperCase() + '</div><div class="pending-job">' + (f.profession||'--') + '</div></div>';
-    html += '<div class="pending-meta">';
-    if (f.rdvDate) html += '<span class="tag tag-rdv">' + formatDate(f.rdvDate) + ' ' + (f.rdvHeure||'') + '</span>';
-    if (f.commercial) html += '<span class="tag tag-comm">' + f.commercial + '</span>';
-    html += '<span class="tag tag-pending">En attente</span></div></div>';
-    html += '<div class="pending-detail">Tel : ' + (f.tel||'--') + '<br>Email : ' + (f.email||'--') + '<br>Prevoyance : ' + (f.prevoyance||'NC') + '<br>Mutuelle : ' + (f.mutuelle||'NC') + '<br>PER : ' + (f.per||'NC') + (f.revenu ? '<br>Revenu : ' + f.revenu : '') + (f.notes ? '<br><em>' + f.notes + '</em>' : '') + '</div>';
-    html += '<div class="pending-actions">';
-    if (gcalUrl) {
-      html += '<button class="btn btn-validate" onclick="validateFiche(' + f.id + ', \'' + gcalUrl.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">Valider et Google Agenda</button>';
-    } else {
-      html += '<button class="btn btn-validate" onclick="validateFiche(' + f.id + ', null)">Valider</button>';
-    }
-    html += '<button class="btn btn-sm btn-danger" onclick="rejectFiche(' + f.id + ')">Rejeter</button>';
-    html += '</div></div>';
-  });
-  list.innerHTML = html;
-}
+function renderPending() {}
 
 function validateFiche(id, gcalUrl) {
   var f = fiches.find(function(x){return x.id===id;});
   if (!f) return;
   f.status = 'validated'; f.validatedAt = new Date().toISOString();
-  persist(); syncToGS(f); updateBadges(); renderPending(); renderAgenda();
+  persist(); syncToGS(f); updateBadges(); renderAgenda();
   if (gcalUrl) { window.open(gcalUrl,'_blank'); showToast('Valide - Google Agenda ouvert'); }
   else showToast('Fiche validee');
 }
@@ -1490,7 +1483,7 @@ function validateFiche(id, gcalUrl) {
 function rejectFiche(id) {
   if (!confirm('Rejeter et supprimer cette fiche ?')) return;
   fiches = fiches.filter(function(f){return f.id!==id;});
-  persist(); updateBadges(); renderPending(); renderAgenda();
+  persist(); updateBadges(); renderAgenda();
   showToast('Fiche rejetee');
 }
 
@@ -1529,11 +1522,8 @@ function updateStats() {
 }
 
 function updateBadges() {
-  var pending = fiches.filter(function(f){return f.status==='pending';}).length;
-  var bp = document.getElementById('badge-pending');
-  if (pending>0){bp.style.display='';bp.textContent=pending;}else bp.style.display='none';
   var ba = document.getElementById('agenda-badge');
-  if (fiches.length>0){ba.style.display='';ba.textContent=fiches.length;}else ba.style.display='none';
+  if (ba) { if (fiches.length>0){ba.style.display='';ba.textContent=fiches.length;}else ba.style.display='none'; }
 }
 
 function openModal(id) {
@@ -1553,8 +1543,6 @@ function openModal(id) {
   document.getElementById('m-comm').textContent = f.commercial||'--';
   document.getElementById('m-lieu').textContent = f.rdvLieu||'--';
   document.getElementById('m-notes').textContent = f.notes||'--';
-  document.getElementById('m-situation').textContent = f.situation||'--';
-  document.getElementById('m-revenu').textContent = f.revenu||'--';
   var gb = document.getElementById('m-gcal-link');
   if (f.rdvDate&&f.status==='validated'){gb.href=buildGCalLink(f);gb.style.display='inline-flex';}else gb.style.display='none';
   document.getElementById('modal').classList.add('open');
@@ -1565,16 +1553,14 @@ function closeModal(e){if(e.target.id==='modal')document.getElementById('modal')
 function deleteFiche() {
   if (!confirm('Supprimer cette fiche ?')) return;
   fiches = fiches.filter(function(f){return f.id!==currentModalId;});
-  persist(); updateBadges(); renderAgenda(); renderPending();
-  document.getElementById('modal').classList.remove('open');
+  persist(); updateBadges(); renderAgenda();   document.getElementById('modal').classList.remove('open');
   showToast('Fiche supprimee');
 }
 
 function clearAll() {
   if (!confirm('Supprimer TOUTES les fiches ?')) return;
   fiches = []; localStorage.setItem(KEY,'[]');
-  updateBadges(); renderAgenda(); renderPending();
-  showToast('Toutes les fiches supprimees');
+  updateBadges(); renderAgenda();   showToast('Toutes les fiches supprimees');
 }
 
 function formatDate(d) {
@@ -1596,7 +1582,7 @@ function exportJSON(){download(JSON.stringify(fiches,null,2),'backup_fiches_'+to
 function importJSON(e) {
   var file=e.target.files[0];if(!file)return;
   var r=new FileReader();
-  r.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!Array.isArray(data))throw new Error();var existing=new Set(fiches.map(function(f){return f.id;}));var added=data.filter(function(f){return !existing.has(f.id);});fiches=fiches.concat(added);persist();updateBadges();renderAgenda();renderPending();showToast(added.length+' fiche(s) importee(s)');}catch(err){showToast('Fichier JSON invalide');}};
+  r.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!Array.isArray(data))throw new Error();var existing=new Set(fiches.map(function(f){return f.id;}));var added=data.filter(function(f){return !existing.has(f.id);});fiches=fiches.concat(added);persist();updateBadges();renderAgenda();showToast(added.length+' fiche(s) importee(s)');}catch(err){showToast('Fichier JSON invalide');}};
   r.readAsText(file);e.target.value='';
 }
 
@@ -1608,13 +1594,7 @@ function appelerAircall() {
   if (!tel) { showToast('Entrez un numero de telephone'); return; }
   var clean = tel.replace(/\s/g,'');
   if (!clean.startsWith('+')) clean = '+33' + clean.replace(/^0/,'');
-  var url = 'aircall://call?phone=' + encodeURIComponent(clean);
-  var a = document.createElement('a');
-  a.href = url;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function() { document.body.removeChild(a); }, 500);
+  window.location.href = 'tel:' + clean;
 }
 
 // COMMERCIAUX
@@ -1734,11 +1714,13 @@ function renderCommerciaux() {
   list.innerHTML = html;
 }
 
+// ── GOOGLE SHEETS SYNC ──
+var GS_KEY = 'protecsia_gs_config';
 var GS_URL = 'https://script.google.com/macros/s/AKfycbx2CUVlkc3AssY5ziBhQbcddK44hEzSfwQF1gOzGspGBPIjrsSYGf8GkYwNptGfvDHYRg/exec';
 
 function getGSUrl() {
-  var custom = localStorage.getItem(GS_KEY) ? JSON.parse(localStorage.getItem(GS_KEY)).url : '';
-  return custom || GS_URL;
+  var cfg = JSON.parse(localStorage.getItem(GS_KEY)||'{}');
+  return cfg.url || GS_URL;
 }
 
 function loadGSConfig() {
@@ -1752,98 +1734,85 @@ function saveGSConfig() {
   showToast('Config sauvegardee');
 }
 
-// Sync une fiche vers Sheets
 function syncToGS(fiche) {
-  var url = getGSUrl();
-  if (!url) return;
-  fetch(url, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(fiche)
-  }).catch(function() {});
+  var url = getGSUrl(); if (!url) return;
+  fetch(url, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(fiche)}).catch(function(){});
 }
 
-// Sync toutes les fiches locales vers Sheets
 function syncAllToGS() {
   var url = getGSUrl();
   if (!url) { showToast('URL non configuree'); return; }
-  var count = 0;
-  fiches.forEach(function(f) { syncToGS(f); count++; });
-  showToast(count + ' fiches synchronisees vers Sheets');
+  fiches.forEach(function(f) { syncToGS(f); });
+  showToast(fiches.length + ' fiches synchronisees');
 }
 
 function testGS() {
   var url = getGSUrl();
   if (!url) { showToast('URL non configuree'); return; }
   showToast('Test en cours...');
-  fetch(url + '?test=1')
-    .then(function(r) { return r.text(); })
-    .then(function() { showToast('Connexion OK'); })
-    .catch(function() { showToast('Echec connexion'); });
-}
-
-// Charger les fiches depuis Sheets au démarrage
-function loadFromGS() {
-  var url = getGSUrl();
-  if (!url) return;
-  showSyncStatus('Chargement...');
-  fetch(url)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (!Array.isArray(data) || data.length === 0) {
-        // Sheets vide — on garde les fiches locales et on les upload
-        if (fiches.length > 0) syncAllToGS();
-        hideSyncStatus();
-        return;
-      }
-      // Fusionner Sheets + local (Sheets prioritaire)
-      var gsIds = new Set(data.map(function(f) { return String(f.id); }));
-      var localOnly = fiches.filter(function(f) { return !gsIds.has(String(f.id)); });
-      fiches = data.map(function(f) {
-        // Convertir les types
-        if (f.id) f.id = Number(f.id) || f.id;
-        return f;
-      }).concat(localOnly);
-      persist();
-      updateBadges();
-      renderAgenda();
-      renderPending();
-      hideSyncStatus();
-      showToast(data.length + ' fiches chargees depuis Sheets');
-    })
-    .catch(function() {
-      hideSyncStatus();
-      showToast('Mode hors-ligne - fiches locales');
-    });
+  fetch(url + '?test=1').then(function() { showToast('Connexion OK'); }).catch(function() { showToast('Echec connexion'); });
 }
 
 function showSyncStatus(msg) {
   var el = document.getElementById('sync-status');
   if (el) { el.textContent = msg; el.style.display = 'inline-flex'; }
 }
+
 function hideSyncStatus() {
   var el = document.getElementById('sync-status');
   if (el) el.style.display = 'none';
 }
 
-// Rafraichir depuis Sheets
+function loadFromGS() {
+  var url = getGSUrl(); if (!url) return;
+  showSyncStatus('Chargement...');
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!Array.isArray(data) || data.length === 0) {
+        if (fiches.length > 0) syncAllToGS();
+        hideSyncStatus(); return;
+      }
+      var gsIds = new Set(data.map(function(f) { return String(f.id); }));
+      var localOnly = fiches.filter(function(f) { return !gsIds.has(String(f.id)); });
+      fiches = data.map(function(f) {
+        if (f.id) f.id = Number(f.id) || f.id;
+        return f;
+      }).concat(localOnly);
+      persist(); updateBadges(); renderAgenda();
+      hideSyncStatus();
+      showToast(data.length + ' fiches chargees');
+    })
+    .catch(function() { hideSyncStatus(); });
+}
+
 function refreshFromGS() {
   showToast('Actualisation...');
   loadFromGS();
 }
 
+// ── TOAST ──
 var toastTimer;
-function showToast(msg){var t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},3000);}
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+// ── INIT ──
+var APP_VERSION = '2.0';
+if (localStorage.getItem('protecsia_version') !== APP_VERSION) {
+  localStorage.setItem('protecsia_version', APP_VERSION);
+}
 
 loadGSConfig();
 updateBadges();
 renderAgenda();
-renderPending();
 loadFromGS();
 updateSessionBtn();
 
-// Auto-refresh toutes les 60 secondes
 setInterval(function() {
   if (document.visibilityState === 'visible') loadFromGS();
 }, 60000);
